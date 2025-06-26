@@ -129,85 +129,160 @@ In MongoDB, operators are special symbols or keywords used in queries to perform
 #### Examples of Comparison Operators
 
 ```javascript
-// Find documents where age is greater than 30
-db.collection.find({ age: { $gt: 30 } })
-// Find documents where name is not equal to "John"
-db.collection.find({ name: { $ne: "John" } })
+// Find documents where age is equal to 30
+db.collection.find({ age: { $eq: 30 } })
+// Find documents where age is not equal to 25
+db.collection.find({ age: { $ne: 25 } })
+// Find documents where age is greater than 20
+db.collection.find({ age: { $gt: 20 } })
+// Find documents where age is greater than or equal to 18
+db.collection.find({ age: { $gte: 18 } })
+// Find documents where age is less than 40
+db.collection.find({ age: { $lt: 40 } })
+// Find documents where age is less than or equal to 35
+db.collection.find({ age: { $lte: 35 } })
 // Find documents where status is either "active" or "pending"
 db.collection.find({ status: { $in: ["active", "pending"] } })
-// Find documents where age is not in the specified array
-db.collection.find({ age: { $nin: [25, 30, 35] } })
+// Find documents where status is neither "inactive" nor "archived"
+db.collection.find({ status: { $nin: ["inactive", "archived"] } })
 ```
+
+
 2. **Logical Operators**: Used to combine multiple conditions.
+
    - `$and`: Logical AND
    - `$or`: Logical OR
    - `$not`: Logical NOT
    - `$nor`: Logical NOR
+
 #### Examples of Logical Operators
+
    ```javascript
-   // Find documents where age is greater than 30 AND status is "active"
-   db.collection.find({ $and: [ { age: { $gt: 30 } }, { status: "active" } ] })
-   // Find documents where age is less than 25 OR status is "inactive"
-   db.collection.find({ $or: [ { age: { $lt: 25 } }, { status: "inactive" } ] })
-   // Find documents where name is not "John"
-   db.collection.find({ $not: { name: "John" } })
-   // Find documents where status is neither "active" nor "pending"
-   db.collection.find({ $nor: [ { status: "active" }, { status: "pending" } ] })
-```
+  // Find documents where age is greater than 20 AND status is "active"
+  db.collection.find({ $and: [{ age: { $gt: 20 } }, { status: "active" }] })
+  // Find documents where age is less than 30 OR status is "pending"
+  db.collection.find({ $or: [{ age: { $lt: 30 } }, { status: "pending" }] })
+  // Find documents where status is NOT "inactive"
+  db.collection.find({ status: { $not: { $eq: "inactive" } } })
+  // Find documents where status is neither "archived" nor "deleted"
+  db.collection.find({ status: { $nor: [{ $eq: "archived" }, { $eq: "deleted" }] } })
+  ```
+
 3. **Element Operators**: Used to query the existence or type of fields.
+
    - `$exists`: Checks if a field exists
    - `$type`: Checks the data type of a field
+
 #### Examples of Element Operators
+
 ```javascript
 // Find documents where the "email" field exists
 db.collection.find({ email: { $exists: true } })
-// Find documents where the "age" field is of type Number
-db.collection.find({ age: { $type: "number" } })
+// Find documents where the "age" field does not exist
+db.collection.find({ age: { $exists: false } })
 // Find documents where the "createdAt" field is of type Date
 db.collection.find({ createdAt: { $type: "date" } })
-// Find documents where the "profilePicture" field exists and is of type Binary
-db.collection.find({ profilePicture: { $exists: true, $type: "binData" } })
+// Find documents where the "profilePicture" field is of type Binary
+db.collection.find({ profilePicture: { $type: "binData" } })
+// Find documents where the "skills" field is of type Array
+db.collection.find({ skills: { $type: "array" } })
+// Find documents where the "status" field is of type String
+db.collection.find({ status: { $type: "string" } })
+// Find documents where the "age" field is of type Number
+db.collection.find({ age: { $type: "number" } })
+// Find documents where the "tags" field is of type Object
+db.collection.find({ tags: { $type: "object" } })
+// Find documents where the "isActive" field is of type Boolean
+db.collection.find({ isActive: { $type: "bool" } })
+// Find documents where the "preferences" field is of type ObjectId
+db.collection.find({ preferences: { $type: "objectId" } })
+// Find documents where the "location" field is of type GeoJSON
+db.collection.find({ location: { $type: "geoJson" } })
+// Find documents where the "metadata" field is of type Null
+db.collection.find({ metadata: { $type: "null" } })
 ```
+
 4. **Array Operators**: Used to query and manipulate arrays.
+
    - `$all`: Matches all elements in an array
    - `$elemMatch`: Matches documents with at least one element in an array that matches the specified criteria
    - `$size`: Matches arrays with a specific size
+
 #### Examples of Array Operators
+
 ```javascript
-// Find documents where the "skills" array contains both "JavaScript" and "Python"
-db.collection.find({ skills: { $all: ["JavaScript", "Python"] } })
+// Find documents where the "tags" array contains both "mongodb" and "database"
+db.collection.find({ tags: { $all: ["mongodb", "database"] } })
 // Find documents where the "skills" array contains at least one element with name "JavaScript" and level "Advanced"
 db.collection.find({ skills: { $elemMatch: { name: "JavaScript", level: "Advanced" } } })
 // Find documents where the "tags" array has exactly 3 elements
 db.collection.find({ tags: { $size: 3 } })
-// Find documents where the "hobbies" array contains at least one element that is a string
-db.collection.find({ hobbies: { $elemMatch: { $type: "string" } } })
+// Find documents where the "skills" array has at least 2 elements
+db.collection.find({ skills: { $size: { $gte: 2 } } })
+// Find documents where the "preferences" array has at most 5 elements
+db.collection.find({ preferences: { $size: { $lte: 5 } } })
+// Find documents where the "hobbies" array has exactly 0 elements
+db.collection.find({ hobbies: { $size: 0 } })
+// Find documents where the "tags" array contains at least one element that starts with "mongo"
+db.collection.find({ tags: { $elemMatch: { $regex: /^mongo/ } } })
+// Find documents where the "skills" array contains at least one element with level "Intermediate"
+db.collection.find({ skills: { $elemMatch: { level: "Intermediate" } } })
+// Find documents where the "preferences" array contains at least one element that is a string
+db.collection.find({ preferences: { $elemMatch: { $type: "string" } } })
+// Find documents where the "hobbies" array contains at least one element that is a number
+db.collection.find({ hobbies: { $elemMatch: { $type: "number" } } } })
+// Find documents where the "tags" array contains at least one element that is an object
+db.collection.find({ tags: { $elemMatch: { $type: "object" } } } })
+// Find documents where the "skills" array contains at least one element that is a boolean
+db.collection.find({ skills: { $elemMatch: { $type: "bool" } } })
 ```
+
 5. **Update Operators**: Used to modify existing documents.
+
    - `$set`: Sets the value of a field
    - `$unset`: Removes a field
    - `$inc`: Increments the value of a field
    - `$push`: Adds an element to an array
    - `$pull`: Removes an element from an array
+
 #### Examples of Update Operators
+
 ```javascript
-// Update the "age" field to 31 for documents where name is "John"
-db.collection.updateMany({ name: "John" }, { $set: { age: 31 } })
+// Update the "age" field to 31 for documents where name is "John Doe"
+db.collection.updateOne({ name: "John Doe" }, { $set: { age: 31 } })
 // Remove the "email" field from documents where status is "inactive"
 db.collection.updateMany({ status: "inactive" }, { $unset: { email: "" } })
-// Increment the "age" field by 1 for documents where name is "Jane"
-db.collection.updateMany({ name: "Jane" }, { $inc: { age: 1 } })
-// Add "JavaScript" to the "skills" array for documents where name is "John"
-db.collection.updateMany({ name: "John" }, { $push: { skills: "JavaScript" } })
-// Remove "Python" from the "skills" array for documents where name is "Jane"
-db.collection.updateMany({ name: "Jane" }, { $pull: { skills: "Python" } })
+// Increment the "views" field by 1 for documents where status is "active"
+db.collection.updateMany({ status: "active" }, { $inc: { views: 1 } })
+// Add "JavaScript" to the "skills" array for documents where name is "Jane Smith"
+db.collection.updateOne({ name: "Jane Smith" }, { $push: { skills: "JavaScript" } })
+// Remove "Python" from the "skills" array for documents where name is "John Doe"
+db.collection.updateOne({ name: "John Doe" }, { $pull: { skills: "Python" } })
+// Set the "status" field to "active" for documents where age is greater than 25
+db.collection.updateMany({ age: { $gt: 25 } }, { $set: { status: "active" } })
+// Unset the "preferences" field for documents where status is "archived"
+db.collection.updateMany({ status: "archived" }, { $unset: { preferences: "" } })
+// Increment the "likes" field by 10 for documents where category is "technology"
+db.collection.updateMany({ category: "technology" }, { $inc: { likes: 10 } })
+// Push "React" to the "frameworks" array for documents where name is "Alice Johnson"
+db.collection.updateOne({ name: "Alice Johnson" }, { $push: { frameworks: "React" } })
+// Pull "Angular" from the "frameworks" array for documents where name is "Bob Smith"
+db.collection.updateOne({ name: "Bob Smith" }, { $pull: { frameworks: "Angular" } })
+// Set the "lastLogin" field to the current date for documents where status is "active"
+db.collection.updateMany({ status: "active" }, { $set: { lastLogin: new Date() } })
+// Unset the "profilePicture" field for documents where status is "inactive"
+db.collection.updateMany({ status: "inactive" }, { $unset: { profilePicture: "" } })
 ```
+
 6. **Bitwise Operators**: Used for bitwise operations on numeric values.
+
    - `$bitsAllClear`: Checks if all bits are clear
    - `$bitsAllSet`: Checks if all bits are set
    - `$bitsAnyClear`: Checks if any bits are clear
    - `$bitsAnySet`: Checks if any bits are set
+
 #### Examples of Bitwise Operators
+
 ```javascript
 // Find documents where the "flags" field has all bits clear (0b0000)
 db.collection.find({ flags: { $bitsAllClear: 0b0000 } })
