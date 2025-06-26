@@ -244,6 +244,15 @@ db.collection.find({ skills: { $elemMatch: { $type: "bool" } } })
    - `$inc`: Increments the value of a field
    - `$push`: Adds an element to an array
    - `$pull`: Removes an element from an array
+   - `$addToSet`: Adds an element to an array only if it does not already exist
+   - `$pop`: Removes the first or last element from an array
+   - `pullAll`: Removes all matching values from an array.
+   - `rename`: Renames a field
+   - `$currentDate`: Sets the value of a field to the current date
+   - `min`: Only updates the field if the specified value is less than the existing field value.
+   - `max`: Only updates the field if the specified value is greater than the existing field value.
+   
+
 
 #### Examples of Update Operators
 
@@ -272,6 +281,13 @@ db.collection.updateOne({ name: "Bob Smith" }, { $pull: { frameworks: "Angular" 
 db.collection.updateMany({ status: "active" }, { $set: { lastLogin: new Date() } })
 // Unset the "profilePicture" field for documents where status is "inactive"
 db.collection.updateMany({ status: "inactive" }, { $unset: { profilePicture: "" } })
+// Add "Node.js" to the "skills" array only if it does not already exist for documents where name is "Charlie Brown"
+db.collection.updateOne({ name: "Charlie Brown" }, { $addToSet: { skills: "Node.js" } })
+// Pop the last element from the "comments" array for documents where name is "David Wilson"
+db.collection.updateOne({ name: "David Wilson" }, { $pop: { comments: 1 } }) 
+// 1 for last element, -1 for first element
+// Rename the "username" field to "user_name" for documents where name is "Emily Davis"
+db.collection.updateMany({ name: "Emily Davis" }, { $rename: { username: "user_name" } })
 ```
 
 6. **Bitwise Operators**: Used for bitwise operations on numeric values.
