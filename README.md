@@ -116,15 +116,16 @@ In summary, BSON is a powerful data format that enhances the capabilities of JSO
 In MongoDB, operators are special symbols or keywords used in queries to perform specific operations on the data, such as comparisons, logical evaluations, or updates. Operators are used in queries, projections, updates, aggregations, etc.
 
 #### Types of Operators in MongoDB
+
 1. **Comparison Operators**: Used to compare values.
-   - `$eq`: Equal
-   - `$ne`: Not equal
-   - `$gt`: Greater than
-   - `$gte`: Greater than or equal to
-   - `$lt`: Less than
-   - `$lte`: Less than or equal to
-   - `$in`: Matches any value in an array
-   - `$nin`: Does not match any value in an array
+   - `$eq`: Matches values that are equal to a specified value.
+   - `$ne`: Matches all values that are not equal to a specified value.
+   - `$gt`: Matches values that are greater than a specified value.
+   - `$gte`: Matches values that are greater than or equal to a specified value.
+   - `$lt`: Matches values that are less than a specified value.
+   - `$lte`: Matches values that are less than or equal to a specified value.
+   - `$in`: Matches any of the values specified in an array.
+   - `$nin`: Matches none of the values specified in an array.
 
 #### Examples of Comparison Operators
 
@@ -150,10 +151,10 @@ db.collection.find({ status: { $nin: ["inactive", "archived"] } })
 
 2. **Logical Operators**: Used to combine multiple conditions.
 
-   - `$and`: Logical AND
-   - `$or`: Logical OR
-   - `$not`: Logical NOT
-   - `$nor`: Logical NOR
+   - `$and`: Joins query clauses with a logical AND returns all documents that match the conditions of both clauses.
+   - `$or`: Joins query clauses with a logical OR returns all documents that match the conditions of either clause.
+   - `$not`: Inverts the effect of a query predicate and returns documents that do not match the query predicate.
+   - `$nor`: Joins query clauses with a logical NOR returns all documents that fail to match both clauses.
 
 #### Examples of Logical Operators
 
@@ -170,30 +171,20 @@ db.collection.find({ status: { $nin: ["inactive", "archived"] } })
 
 3. **Element Operators**: Used to query the existence or type of fields.
 
-   - `$exists`: Checks if a field exists
-   - `$type`: Checks the data type of a field
+   - `$exists`: Matches documents that have the specified field.
+   - `$type`: Selects documents if a field is of the specified type.
 
 #### Examples of Element Operators
 
 ```javascript
 // Find documents where the "email" field exists
 db.collection.find({ email: { $exists: true } })
-// Find documents where the "age" field does not exist
-db.collection.find({ age: { $exists: false } })
 // Find documents where the "createdAt" field is of type Date
 db.collection.find({ createdAt: { $type: "date" } })
-// Find documents where the "profilePicture" field is of type Binary
-db.collection.find({ profilePicture: { $type: "binData" } })
 // Find documents where the "skills" field is of type Array
 db.collection.find({ skills: { $type: "array" } })
-// Find documents where the "status" field is of type String
-db.collection.find({ status: { $type: "string" } })
-// Find documents where the "age" field is of type Number
-db.collection.find({ age: { $type: "number" } })
 // Find documents where the "tags" field is of type Object
 db.collection.find({ tags: { $type: "object" } })
-// Find documents where the "isActive" field is of type Boolean
-db.collection.find({ isActive: { $type: "bool" } })
 // Find documents where the "preferences" field is of type ObjectId
 db.collection.find({ preferences: { $type: "objectId" } })
 // Find documents where the "location" field is of type GeoJSON
@@ -240,18 +231,26 @@ db.collection.find({ skills: { $elemMatch: { $type: "bool" } } })
 5. **Update Operators**: Used to modify existing documents.
 
    - `$set`: Sets the value of a field
-   - `$unset`: Removes a field
-   - `$inc`: Increments the value of a field
+   - `$unset`: Removes the specified field from a document.
+   - `$inc`: Increments the value of the field by the specified amount.
    - `$push`: Adds an element to an array
-   - `$pull`: Removes an element from an array
-   - `$addToSet`: Adds an element to an array only if it does not already exist
+   - `$pull`: Removes all array elements that match a specified query.
+   - `$addToSet`: Adds elements to an array only if they do not already exist in the set.
    - `$pop`: Removes the first or last element from an array
-   - `pullAll`: Removes all matching values from an array.
-   - `rename`: Renames a field
-   - `$currentDate`: Sets the value of a field to the current date
-   - `min`: Only updates the field if the specified value is less than the existing field value.
-   - `max`: Only updates the field if the specified value is greater than the existing field value.
-   
+   - `$pullAll`: Removes all matching values from an array.
+   - `$rename`: Renames a field
+   - `$currentDate`: Sets the value of a field to current date, either as a Date or a Timestamp.
+   - `$min`: Only updates the field if the specified value is less than the existing field value.
+   - `$max`: Only updates the field if the specified value is greater than the existing field value.
+   - `$mul`: Multiplies the value of the field by the specified amount.
+   - `$setOnInsert`: Sets the value of a field if an update results in an insert of a document. Has no effect on update operations that modify existing documents.
+   - `$`: Acts as a placeholder to update the first element that matches the query condition.
+   - `$[]`: Acts as a placeholder to update all elements in an array for the documents that match the query condition.
+   - `$[<identifier>]`: Acts as a placeholder to update all elements that match the `arrayFilters` condition for the documents that match the query condition.
+   - `$each`: Modifies the `$push` and `$addToSet` operators to append multiple items for array updates.
+   - `$position`: Modifies the `$push` operator to specify the position in the array to add elements.
+   - `$slice`: Modifies the `$push` operator to limit the size of updated arrays.
+   - `$sort`: Modifies the `$push` operator to reorder documents stored in an array.
 
 
 #### Examples of Update Operators
@@ -285,9 +284,41 @@ db.collection.updateMany({ status: "inactive" }, { $unset: { profilePicture: "" 
 db.collection.updateOne({ name: "Charlie Brown" }, { $addToSet: { skills: "Node.js" } })
 // Pop the last element from the "comments" array for documents where name is "David Wilson"
 db.collection.updateOne({ name: "David Wilson" }, { $pop: { comments: 1 } }) 
-// 1 for last element, -1 for first element
 // Rename the "username" field to "user_name" for documents where name is "Emily Davis"
 db.collection.updateMany({ name: "Emily Davis" }, { $rename: { username: "user_name" } })
+// Multiply the "salary" field by 1.1 for documents where department is "HR"
+db.collection.updateMany({ department: "HR" }, { $mul: { salary: 1.1 } })
+// Set "score" to 80 only if it's currently greater than 80
+db.collection.updateOne({ name: "John Doe" }, { $min: { score: 80 } })
+// Set "score" to 90 only if it's currently less than 90
+db.collection.updateOne({ name: "John Doe" }, { $max: { score: 90 } })
+// Set the "lastModified" field to the current date
+db.collection.updateOne({ name: "John Doe" }, { $currentDate: { lastModified: true } })
+// Set "createdAt" only during an upsert (insert if not exists)
+db.collection.updateOne(
+  { email: "john@example.com" },
+  {
+    $set: { name: "John Doe" },
+    $setOnInsert: { createdAt: new Date() }
+  },
+  { upsert: true }
+)
+// Add multiple hobbies at once
+db.collection.updateOne(
+  { name: "John Doe" },
+  { $push: { hobbies: { $each: ["hiking", "biking"] } } }
+)
+// Keep only the last 3 elements in the "logs" array
+db.collection.updateOne(
+  { userId: 123 },
+  { $push: { logs: { $each: [newLog], $slice: -3 } } }
+)
+// Insert "jogging" at position 1 in the "hobbies" array
+db.collection.updateOne(
+  { name: "John Doe" },
+  { $push: { hobbies: { $each: ["jogging"], $position: 1 } } }
+)
+
 ```
 
 6. **Bitwise Operators**: Used for bitwise operations on numeric values.
