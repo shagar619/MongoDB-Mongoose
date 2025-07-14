@@ -1,4 +1,4 @@
-<!-- markdownlint-disable MD012 MD026 MD001 MD022 MD032 MD029 MD019 MD034 MD031 MD047 MD040 MD009 MD058 MD024  -->
+<!-- markdownlint-disable MD012 MD026 MD001 MD022 MD032 MD029 MD019 MD034 MD031 MD047 MD040 MD009 MD058 MD024 MD036 MD003  -->
 
 # Questions About MongoDB & Mongoose
 
@@ -34,8 +34,314 @@ Overall, MongoDB is well-suited for applications that require high scalability, 
 | Deployment             | Cloud, on-premises, or hybrid    | Primarily on-premises            |
 | Community Support      | Active open-source community      | Established vendor support       |
 | Learning Curve         | Easier for developers familiar with JSON | Requires knowledge of SQL syntax |
-| Performance            | Optimized for large datasets      | Optimized for complex queries    |
 
+
+#### ❓Collections And Databases In MongoDB
+- **Database**: A container for collections, equivalent to a database in SQL.
+- **Collection**: A group of documents, similar to tables in SQL, but schema-less.
+> For example, a users collection can be part of the mydatabase database.
+
+#### ❓MongoDB Ensure High Availability and Scalability
+- MongoDB ensures high **availability** and **scalability** through its features like **replica sets** and sharding.
+- **Replica sets** provide redundancy and failover capabilities by ensuring that data is always available.
+- Sharding distributes data across multiple servers, enabling horizontal scalability to handle large volumes of data and high traffic loads.
+
+#### ❓Replica Sets in MongoDB
+- A replica set in MongoDB is a group of mongod instances that maintain the same data set.
+- A replica set consists of a primary node and multiple secondary nodes.
+- The primary node receives all write operations while secondary nodes replicate the primary's data and can serve read operations.
+- If the primary node fails, an automatic election process selects a new primary to maintain high availability.
+
+#### ❓Create a New Database and Collection in MongoDB
+
+#### 🧱 1. Using MongoDB Shell (`mongosh`)
+#### ✅ Step 1: Switch to (or create) a new database
+```javascript
+use myNewDatabase
+```
+> If `myNewDatabase` doesn't exist, MongoDB will create it when you insert the first document.
+#### ✅ Step 2: Create a collection
+```javascript
+db.createCollection("myCollection")
+```
+> This creates an empty collection named myCollection in myNewDatabase.
+#### ✅ Step 3: Insert a document (auto-creates collection if needed)
+```javascript
+db.myCollection.insertOne({ name: "John", age: 30 })
+```
+
+#### 💻 2. Using MongoDB with Node.js (Example)
+```javascript
+const { MongoClient } = require("mongodb");
+
+async function run() {
+  const uri = "mongodb://localhost:27017";
+  const client = new MongoClient(uri);
+  
+  try {
+    await client.connect();
+    const db = client.db("myNewDatabase");           // Create/use database
+    const collection = db.collection("myCollection"); // Create/use collection
+
+    await collection.insertOne({ name: "Alice", age: 25 }); // Insert document
+    console.log("Document inserted");
+  } finally {
+    await client.close();
+  }
+}
+
+run().catch(console.dir);
+```
+
+#### ❓Basic Syntax of MongoDB CRUD Operations
+#### 🔁 CRUD Operations
+#### 🟢 CREATE
+```javascript
+  //Insert One Document
+  db.myCollection.insertOne({
+  name: "Alice",
+  age: 25,
+  city: "New York"
+})
+
+  //Insert Multiple Documents
+  db.myCollection.insertMany([
+  { name: "Bob", age: 30, city: "London" },
+  { name: "Charlie", age: 35, city: "Paris" }
+])
+```
+#### 🔵 READ
+```javascript
+  //Find All Documents
+  db.myCollection.find()
+
+  //Find with Filter
+  db.myCollection.find({ age: { $gt: 30 } })
+
+  //Find One Document
+  db.myCollection.findOne({ name: "Alice" })
+
+  //Find with Projection
+  db.myCollection.find(
+  { city: "London" },
+  { name: 1, _id: 0 }
+  )
+```
+
+#### 🟡 UPDATE
+```javascript
+  //Update One Document
+  db.myCollection.updateOne(
+    { name: "Alice" },
+    { $set: { age: 26 } }
+  )
+
+  //Update Multiple Documents
+  db.myCollection.updateMany(
+    { city: "London" },
+    { $inc: { age: 1 } }
+  )
+```
+
+#### 🔴 DELETE
+```javascript
+  //Delete One Document
+  db.myCollection.deleteOne({ name: "Charlie" })
+
+  //Delete Multiple Documents
+  db.myCollection.deleteMany({ age: { $gt: 30 } })
+```
+
+#### ❓An Index in MongoDB
+In MongoDB, an index is a special data structure that improves the speed of queries on a collection. Without indexes, MongoDB must perform a collection scan, which is inefficient for large datasets.
+
+**An Index**
+- An index stores a small portion of the data set in an easy-to-search form.
+- It is similar to an index in a book – it allows you to quickly find the information you're looking for.
+- MongoDB automatically creates an index on `_id` for every collection.
+
+#### Example: Creating and Using an Index
+```javascript
+// Insert sample data
+db.users.insertMany([
+  { name: "Alice", age: 25 },
+  { name: "Bob", age: 30 },
+  { name: "Charlie", age: 35 }
+])
+
+// Create an index on age
+db.users.createIndex({ age: 1 })
+
+// Query using the index
+db.users.find({ age: { $gt: 26 } })
+```
+
+#### ❓TTL Indexes in MongoDB
+TTL (Time To Live) Indexes in MongoDB are special indexes that automatically remove documents from a collection after a certain period. They are commonly used for data that needs to expire after a specific time, such as session information, logs, or temporary data.
+```javascript
+// Insert a document with current timestamp
+db.tempData.insertOne({
+  name: "Temporary Data",
+  createdAt: new Date()
+})
+
+// Set TTL index to expire after 10 seconds
+db.tempData.createIndex(
+  { createdAt: 1 },
+  { expireAfterSeconds: 10 }
+)
+
+// After ~10 seconds, MongoDB will automatically delete this document
+```
+
+#### ❓Handle Schema Design and Data Modeling in MongoDB
+
+Schema design and data modeling in MongoDB involve defining how data is organized and stored in a document-oriented database. Unlike SQL databases, MongoDB offers flexible schema design, which can be both an advantage and a challenge. Key considerations for schema design include:
+
+1. Embedding vs. Referencing: Deciding whether to embed related data within a single document or use references between documents.
+
+##### Embedding (Denormalization): 
+
+- Store related data inside a single document.
+- Best for one-to-few or read-heavy relationships.
+```javascript
+  {
+  "_id": 1,
+  "name": "Alice",
+  "orders": [
+    { "item": "Book", "price": 20 },
+    { "item": "Pen", "price": 5 }
+  ]
+  }
+```
+##### ✅ Pros:
+- Faster reads (fewer queries).
+- Atomic updates for nested fields.
+##### ❌ Cons:
+- Document size limit (16 MB).
+- Risk of data duplication.
+
+##### Referencing (Normalization)
+- Store related data in separate collections and link via IDs.
+- Best for one-to-many or many-to-many relationships.
+```javascript
+// User document
+{ "_id": 1, "name": "Alice" }
+
+// Orders collection
+{ "_id": 101, "userId": 1, "item": "Book", "price": 20 }
+```
+##### ✅ Pros:
+- Data reuse and consistency.
+- Smaller documents.
+
+##### ❌ Cons:
+- Requires joins using $lookup, which are slower.
+
+**Document Structure**: Designing documents that align with application query patterns for efficient read and write operations.
+**Indexing**: Creating indexes to support query performance.
+**Data Duplication**: Accepting some level of data duplication to optimize for read performance.
+**Sharding**: Designing the schema to support sharding if horizontal scaling is required.
+
+#### ❓MongoDB Compass Tool and Its Functionalities
+MongoDB Compass is a `graphical user interface (GUI)` tool for MongoDB that provides an easy way to visualize, explore, and manipulate your data. It offers features such as:
+
+- **Schema Visualization**: View and analyze your data schema, including field types and distributions.
+- **Query Building**: Build and execute queries using a visual interface.
+- **Aggregation Pipeline**: Construct and run aggregation pipelines.
+- **Index Management**: Create and manage indexes to optimize query performance.
+- **Performance Monitoring**: Monitor database performance, including slow queries and resource utilization.
+- **Data Validation**: Define and enforce schema validation rules to ensure data integrity.
+- **Data Import/Export**: Easily import and export data between MongoDB and JSON/CSV files.
+
+#### ❓MongoDB Atlas
+MongoDB Atlas is a fully managed cloud database service provided by MongoDB. It offers automated deployment, scaling, and management of MongoDB clusters across various cloud providers (`AWS`, `Azure`, `Google Cloud`). Key differences from self-hosted MongoDB include:
+
+- **Managed Service**: Atlas handles infrastructure management, backups, monitoring, and upgrades.
+- **Scalability**: Easily scale clusters up or down based on demand.
+- **Security**: Built-in security features such as encryption, access controls, and compliance certifications.
+- **Global Distribution**: Deploy clusters across multiple regions for low-latency access and high availability.
+- **Integrations**: Seamless integration with other cloud services and MongoDB tools.
+
+#### ❓Capped Collections in MongoDB
+A Capped Collection in MongoDB is a fixed-size, high-performance, circular collection that automatically overwrites the oldest documents when the allocated space is full.
+
+Think of it like a circular buffer—when the cap is reached, new data replaces the old data in insertion order.
+
+##### ✅ Good for:
+- Logging (e.g., system logs, access logs)
+- Real-time stream data (e.g., IoT)
+- Caching most recent values
+- Maintaining a fixed-length history
+
+#### 🧪 Example
+```javascript
+db.createCollection("eventLogs", {
+  capped: true,
+  size: 512000, // 500 KB
+  max: 500      // Keep only 500 latest logs
+})
+
+// Insert some log entries
+db.eventLogs.insertOne({ message: "Server started", timestamp: new Date() })
+
+// Read logs in insertion order
+db.eventLogs.find().sort({ $natural: 1 })
+```
+
+#### ❓Change Streams in MongoDB
+Change Streams in MongoDB allow real-time access to changes (inserts, updates, deletes, etc.) that occur in your collections, databases, or the entire deployment — without polling.
+
+They’re like a live feed of database events you can listen to, making them perfect for event-driven applications, notifications, replication, or caching systems.
+
+#### Example
+```javascript
+const changeStream = db.collection.watch()
+
+changeStream.forEach(change => {
+  printjson(change)
+})
+```
+##### Output
+```javascript
+{
+  "_id": { ... },
+  "operationType": "insert",
+  "fullDocument": {
+    "_id": ObjectId("..."),
+    "name": "Alice"
+  },
+  "ns": {
+    "db": "testDB",
+    "coll": "users"
+  },
+  "documentKey": { "_id": ObjectId("...") }
+}
+```
+
+#### ❓Optimize MongoDB Queries for Performance
+Optimizing MongoDB queries involves several strategies:
+
+- **Indexes**: Create appropriate indexes to support query patterns.
+- **Query Projections**: Use projections to return only necessary fields.
+- **Index Hinting**: Use index hints to force the query optimizer to use a specific index.
+- **Query Analysis**: Use the explain() method to analyze query execution plans and identify bottlenecks.
+- **Aggregation Pipeline**: Optimize the aggregation pipeline stages to minimize data processing and improve efficiency.
+
+#### ❓Role of Journaling in MongoDB
+Journaling in MongoDB ensures data durability and crash recovery by recording changes to the data in a journal file before applying them to the database files. This mechanism allows MongoDB to recover from unexpected shutdowns or crashes by replaying the journal. While journaling provides data safety, it can impact performance due to the additional I/O operations required to write to the journal file.
+
+#### ❓Process of Migrating Data from a Relational Database to MongoDB
+Migrating data from a relational database to MongoDB involves several steps:
+
+- **Schema Design**: Redesign the relational schema to fit MongoDB's document-oriented model. Decide on embedding vs. referencing, and plan for indexes and collections.
+- **Data Export**: Export data from the relational database in a format suitable for MongoDB (e.g., CSV, JSON).
+- **Data Transformation**: Transform the data to match the MongoDB schema. This can involve converting data types, restructuring documents, and handling relationships.
+- **Data Import**: Import the transformed data into MongoDB using tools like mongoimport or custom scripts.
+Validation: Validate the imported data to ensure consistency and completeness.
+- **Application Changes**: Update the application code to interact with MongoDB instead of the relational database.
+- **Testing**: Thoroughly test the application and the database to ensure everything works as expected.
+- **Go Live**: Deploy the MongoDB database in production and monitor the transition.
 
 #### ✅ When to Use MongoDB
 - When you need to handle large volumes of unstructured or semi-structured data.
@@ -107,6 +413,7 @@ In summary, BSON is a powerful data format that enhances the capabilities of JSO
   "objectIdField": ObjectId("60c72b2f9b1e8c001c8e4d3a") // ObjectId
 }
 ```
+
 ---
 ---
 ---
@@ -391,11 +698,160 @@ db.collection.find({
   }
 })
 ``` 
+
+
 8. **Aggregation Operators**: Used in aggregation pipelines to perform data transformations and calculations.
-   - `$match`: Filters documents based on specified criteria
-   - `$group`: Groups documents by a specified field and performs aggregations
-   - `$sort`: Sorts documents based on specified fields
-   - `$project`: Reshapes documents by including or excluding fields
+
+#### 📌 8.1 - Expression Operators
+
+Used in stages like `$project`, `$group`, and `$addFields`.
+
+#### 🔢 Arithmetic Operators
+
+| Operator      | Description           | Example                                  |
+|---------------|------------------------|-------------------------------------------|
+| `$add`        | Adds numbers           | `{ $add: [5, "$price"] }`                 |
+| `$subtract`   | Subtracts numbers      | `{ $subtract: ["$price", "$discount"] }`  |
+| `$multiply`   | Multiplies numbers     | `{ $multiply: ["$price", "$quantity"] }`  |
+| `$divide`     | Divides numbers        | `{ $divide: ["$total", "$quantity"] }`    |
+| `$mod`        | Modulus (remainder)    | `{ $mod: ["$score", 2] }`                 |
+
+
+#### 📌 8.2 - Array Operators
+
+Work with array fields in documents.
+
+| Operator        | Description               | Example |
+|-----------------|---------------------------|---------|
+| `$size`         | Returns size of array     | `{ $size: "$tags" }` |
+| `$arrayElemAt`  | Get element by index      | `{ $arrayElemAt: ["$items", 0] }` |
+| `$concatArrays` | Concatenates arrays       | `{ $concatArrays: ["$arr1", "$arr2"] }` |
+| `$filter`       | Filters array items       | `{ $filter: { input: "$scores", as: "score", cond: { $gt: ["$$score", 80] } } }` |
+| `$in`           | Checks if value in array  | `{ $in: ["apple", "$fruits"] }` |
+
+
+#### 📌 8.3 - String Operators
+
+Manipulate and evaluate string values.
+
+| Operator       | Description             | Example |
+|----------------|--------------------------|---------|
+| `$concat`      | Concatenate strings      | `{ $concat: ["$firstName", " ", "$lastName"] }` |
+| `$substrBytes` | Substring by bytes       | `{ $substrBytes: ["$desc", 0, 5] }` |
+| `$toLower`     | Lowercase string         | `{ $toLower: "$name" }` |
+| `$toUpper`     | Uppercase string         | `{ $toUpper: "$name" }` |
+| `$trim`        | Trim chars from string   | `{ $trim: { input: "$name", chars: " " } }` |
+
+
+#### 📌 8.4 - Comparison Operators
+
+Used in conditions to compare values.
+
+| Operator | Description     | Example |
+|----------|------------------|---------|
+| `$eq`    | Equal to         | `{ $eq: ["$status", "active"] }` |
+| `$ne`    | Not equal to     | `{ $ne: ["$status", "inactive"] }` |
+| `$gt`    | Greater than     | `{ $gt: ["$price", 100] }` |
+| `$gte`   | Greater or equal | `{ $gte: ["$price", 100] }` |
+| `$lt`    | Less than        | `{ $lt: ["$price", 50] }` |
+| `$lte`   | Less or equal    | `{ $lte: ["$price", 50] }` |
+| `$cmp`   | Compare values   | `{ $cmp: ["$a", "$b"] }` |
+
+
+#### 📌 8.5 - Boolean Operators
+
+Logical operators for building conditions.
+
+| Operator | Description    | Example |
+|----------|----------------|---------|
+| `$and`   | Logical AND    | `{ $and: [{ $gt: ["$qty", 10] }, { $lt: ["$qty", 50] }] }` |
+| `$or`    | Logical OR     | `{ $or: [{ $eq: ["$status", "A"] }, { $eq: ["$status", "B"] }] }` |
+| `$not`   | Logical NOT    | `{ $not: [{ $eq: ["$status", "A"] }] }` |
+
+
+
+#### 📌 8.6 - Conditional Operators
+
+Evaluate conditional logic.
+
+| Operator  | Description     | Example |
+|-----------|------------------|---------|
+| `$cond`   | If-then-else     | `{ $cond: { if: { $gt: ["$qty", 100] }, then: "High", else: "Low" } }` |
+| `$ifNull` | Default if null  | `{ $ifNull: ["$discount", 0] }` |
+| `$switch` | Multiple cases   | `{ $switch: { branches: [{ case: { $eq: ["$grade", "A"] }, then: "Excellent" }], default: "Average" } }` |
+
+
+
+#### 📌 8.7 - Date Operators
+
+Manipulate and format dates.
+
+| Operator         | Description             | Example |
+|------------------|--------------------------|---------|
+| `$year`          | Extract year             | `{ $year: "$createdAt" }` |
+| `$month`         | Extract month            | `{ $month: "$createdAt" }` |
+| `$dayOfWeek`     | Extract weekday          | `{ $dayOfWeek: "$createdAt" }` |
+| `$dateToString`  | Format date as string    | `{ $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }` |
+| `$dateAdd`       | Add to date              | `{ $dateAdd: { startDate: "$createdAt", unit: "day", amount: 7 } }` |
+
+
+
+#### 📌 8.8 - Set Operators
+
+Operate on sets (arrays with unique values).
+
+| Operator         | Description             | Example |
+|------------------|--------------------------|---------|
+| `$setEquals`     | Check set equality       | `{ $setEquals: [["$a", "$b"]] }` |
+| `$setIntersection` | Common elements        | `{ $setIntersection: [["$tags1", "$tags2"]] }` |
+| `$setUnion`      | Combine unique values    | `{ $setUnion: [["$a", "$b"]] }` |
+| `$setDifference` | Items in A not in B      | `{ $setDifference: [["$a", "$b"]] }` |
+
+
+
+#### 📌 8.9 - Accumulators (for `$group` stage)
+
+Aggregate values from multiple documents.
+
+| Operator     | Description       | Example |
+|--------------|-------------------|---------|
+| `$sum`       | Sum of values     | `{ $sum: "$amount" }` |
+| `$avg`       | Average            | `{ $avg: "$score" }` |
+| `$min` / `$max` | Min/Max         | `{ $min: "$price" }` |
+| `$push`      | Add to array       | `{ $push: "$name" }` |
+| `$addToSet`  | Unique values      | `{ $addToSet: "$tag" }` |
+| `$first`     | First document     | `{ $first: "$score" }` |
+| `$last`      | Last document      | `{ $last: "$score" }` |
+
+
+
+#### 📌 8.10 - Type Conversion Operators
+
+Convert data types.
+
+| Operator     | Description        | Example |
+|--------------|---------------------|---------|
+| `$toString`  | Converts to string  | `{ $toString: "$price" }` |
+| `$toInt`     | Converts to int     | `{ $toInt: "$price" }` |
+| `$toDouble`  | Converts to float   | `{ $toDouble: "$price" }` |
+| `$convert`   | Generic converter   | `{ $convert: { input: "$price", to: "int", onError: 0 } }` |
+
+
+
+#### 📌 8.11 - Math Operators
+
+Math and trigonometry functions.
+
+| Operator   | Description     | Example |
+|------------|------------------|---------|
+| `$abs`     | Absolute value   | `{ $abs: "$value" }` |
+| `$ceil`    | Round up         | `{ $ceil: "$value" }` |
+| `$floor`   | Round down       | `{ $floor: "$value" }` |
+| `$round`   | Round to places  | `{ $round: ["$value", 2] }` |
+| `$sqrt`    | Square root      | `{ $sqrt: "$value" }` |
+| `$sin` / `$cos` / `$tan` | Trigonometry | `{ $sin: "$angle" }` |
+
+
 #### Examples of Aggregation Operators
 ```javascript
 // Aggregate documents to calculate the average age by status
@@ -434,6 +890,152 @@ db.collection.aggregate([
     }
   }
 ])
+// Match documents where gender is "Male" and age is less than 30
+db.test.aggregate([
+    // stage - 1
+    { $match: { gender: "Male", age: { $lt: 30 } } },
+    // stage - 2: Select only the name, age, and gender fields
+    { $project: { name: 1, age: 1, gender: 1 } }
+])
+// Add fields and export the output to a new collection
+db.test.aggregate([
+    // stage - 1: Match only male users
+    { $match: { gender: "Male" } },
+    // stage - 2: Add new fields to each document
+    { $addFields: { course: "level-2", eduTech: "Programming Hero" } },
+    // stage - 3: Show only the added fields
+    { $project: { course: 1, eduTech: 1 } },
+    // stage - 4: Export the pipeline output to a new collection called "course-student"
+    { $out: "course-student" }
+])
+// Merge the results back into the same collection
+db.test.aggregate([
+    // stage - 1: Filter only male documents
+    { $match: { gender: "Male" } },
+    // stage - 2: Add fields to the matching documents
+    { $addFields: { course: "level-2", eduTech: "Programming Hero" } },
+    // stage - 3: Show only course and eduTech fields
+    { $project: { course: 1, eduTech: 1 } },
+    // stage - 4: Merge the results back into the same "test" collection
+    { $merge: "test" }
+])
+// Group documents by age and list full documents per group
+db.test.aggregate([
+    // stage - 1: Group by "age" and gather the full document and count
+    { $group: {
+        _id: "$age", 
+        fullDoc: { $push: "$$ROOT" }, 
+        count: { $sum: 1 } }
+    },
+    // stage - 2: Show only name, email, and phone inside grouped docs
+    { $project: {
+        "fullDoc.name": 1,
+        "fullDoc.email": 1,
+        "fullDoc.phone": 1
+    }}
+])
+// Calculate salary stats and differences
+db.test.aggregate([
+    // stage - 1: Group all documents and calculate salary metrics
+    { $group: {
+        _id: null,
+        totalSalary: { $sum: "$salary" },
+        maxSalary: { $max: "$salary" },
+        minSalary: { $min: "$salary" },
+        avgSalary: { $avg: "$salary" }
+    }},
+    // stage - 2: Project salary values and compute range
+    { $project: {
+        totalSalary: 1,
+        maxSalary: 1,
+        minSalary: 1,
+        averageSalary: "$avgSalary",
+        rangeSalary: { $subtract: ["$maxSalary", "$minSalary"] }
+    }}
+])
+// Unwind "friends" array and count occurrences
+db.test.aggregate([
+    // stage - 1: Deconstruct "friends" array
+    { $unwind: "$friends" },
+    // stage - 2: Group by each friend and count how many times they appear
+    { $group: { _id: "$friends", count: { $sum: 1 } } }
+])
+// Unwind "interests" and group by age
+db.test.aggregate([
+    // stage - 1: Flatten the "interests" array
+    { $unwind: "$interests" },
+    // stage - 2: Group by age, collect interests per age
+    { $group: { _id: "$age", interestPerAge: { $push: "$interests" } } }
+])
+// Bucket documents by age into ranges
+db.test.aggregate([
+    // stage - 1: Create buckets for age groups
+    { $bucket: {
+        groupBy: "$age",
+        boundaries: [20, 40, 60, 80], // Age ranges
+        default: "upper 80",         // Anything above 80
+        output: {
+            count: { $sum: 1 },
+            Name: { $push: "$name" }
+        }
+    }},
+    // stage - 2: Sort by count descending
+    { $sort: { count: -1 } },
+    // stage - 3: Take top 2 buckets
+    { $limit: 2 },
+    // stage - 4: Show only the count
+    { $project: { count: 1 } }
+])
+// Run multiple pipelines in parallel using $facet
+db.test.aggregate([
+    {
+        $facet: {
+            // pipeline - 1: Count friends occurrences
+            "friendsCount": [
+                // stage - 1
+                { $unwind: "$friends" },
+                // stage - 2
+                { $group: { _id: "$friends", count: { $sum: 1 } } }
+            ],
+            // pipeline - 2: Count education types
+            "eduCount": [
+                // stage - 1
+                { $unwind: "$education" },
+                // stage - 2
+                { $group: { _id: "$education", count: { $sum: 1 } } }
+            ],
+            // pipeline - 3: Count skill occurrences
+            "skillsCount": [
+                // stage - 1
+                { $unwind: "$skills" },
+                // stage - 2
+                { $group: { _id: "$skills", count: { $sum: 1 } } }
+            ]
+        }
+    }
+])
+// Join documents from another collection using $lookup
+db.Orders.aggregate([
+    {
+        $lookup: {
+            from: "test",            // Foreign collection
+            localField: "userId",    // Field in current collection
+            foreignField: "_id",     // Field in foreign collection
+            as: "user"               // Output array field
+        }
+    }
+])
+// Analyze how a query is executed with execution stats
+db.test.find({ _id: ObjectId("6406ad63fc13ae5a40000066") })
+.explain("executionStats")
+// Create an ascending index on the 'email' field
+db.getCollection("massive-data").createIndex({ email: 1 })
+// Create a full-text index on the 'about' field
+db.getCollection("massive-data").createIndex({ about: "text" })
+// Perform a full-text search for the word "dolor" in the 'about' field
+db.getCollection("massive-data")
+.find({ $text: { $search: "dolor" } })
+.project({ about: 1 })
 ```
 
 
