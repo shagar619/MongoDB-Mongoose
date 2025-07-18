@@ -1,4 +1,4 @@
-<!-- markdownlint-disable MD012 MD026 MD001 MD022 MD032 MD029 MD019 MD034 MD031 MD047 MD040 MD009 MD058 MD024 MD036 MD003  -->
+<!-- markdownlint-disable MD012 MD026 MD001 MD022 MD032 MD029 MD019 MD034 MD031 MD047 MD040 MD009 MD058 MD024 MD036 MD003 MD025 MD028  -->
 
 # Questions About MongoDB & Mongoose
 
@@ -1294,3 +1294,426 @@ mongodump --db myDatabase --collection myCollection --query '{ "status": "active
 mongorestore --db myDatabase /path/to/backup/myDatabase --query '{ "status": "active" }'
 ```
 
+
+
+
+# Mongoose
+
+## 🔹What is Mongoose and how does it relate to MongoDB?
+
+Mongoose is an Object Data Modeling (ODM) library for MongoDB and Node.js. It provides a schema-based solution to model application data, allowing developers to define schemas for their data structures, enforce validation, and create relationships between different data models. Mongoose simplifies interactions with MongoDB by providing a higher-level abstraction over the native MongoDB driver, making it easier to work with MongoDB in a Node.js environment.
+
+#### Key Features of Mongoose:
+- **Schema Definition**: Mongoose allows you to define schemas for your data models, specifying the structure, data types, and validation rules for each field.
+- **Data Validation**: Mongoose provides built-in validation mechanisms to ensure that data adheres to the defined schema before it is saved to the database.
+- **Middleware**: Mongoose supports middleware functions (also known as hooks) that can be executed before or after certain operations, such as saving a document or removing it from the database.
+- **Query Building**: Mongoose provides a powerful query builder that allows you to construct complex queries using a fluent API, making it easier to retrieve and manipulate data.
+- **Relationships**: Mongoose supports relationships between different data models, allowing you to create references to other documents and populate related data easily.
+- **Integration with MongoDB**: Mongoose integrates seamlessly with the MongoDB driver, allowing you to use Mongoose to interact with MongoDB in a Node.js application.
+- **Plugins**: Mongoose supports plugins, which are reusable pieces of code that can extend the functionality of Mongoose models, such as adding timestamps or soft delete functionality.
+- **Type Casting**: Mongoose automatically casts values to the appropriate data types defined in the schema, ensuring data consistency.
+- **Error Handling**: Mongoose provides comprehensive error handling mechanisms, allowing you to catch and handle errors that occur during database operations.
+
+
+#### ❓Advantages of using Mongoose for MongoDB
+- **Data Modeling**: Mongoose helps you store MongoDB document structures like JavaScript objects through schemas. It supports powerful features such as data validation, setting default values, and nested document modeling.
+- **Intuitive API**: Mongoose provides a simple and intuitive API for MongoDB CRUD operations. It helps in writing code and frees you from MongoDB's syntax.
+- **Validation and Business Logic**: Mongoose allows you to apply document validation and business logic through schemas. These validations can be applied before, after, or over time.
+- **Middleware and Hooks**: Mongoose helps you create custom logic for pre/post save, pre/post remove, and other events. It lets you interact with the database more intricately.
+- **Pagination and Aggregation**: Mongoose offers the ability to implement paging, sorting, grouping, and other statistical features, making complex queries possible for your applications.
+- **Logging and Debugging**: Mongoose provides a convenient framework for logging and debugging MongoDB queries, helping you identify and resolve issues with database communication.
+- **Extensibility**: Mongoose is an open-source project, so it can be extended with various plugins and extensions, allowing you to add more complex features and functionalities.
+
+#### 🏗️ Folder Structure (MVC Pattern with Mongoose)
+```plaintext
+project-root/
+├── models/                # Mongoose models
+│   ├── User.js            # User model
+│   ├── Product.js         # Product model
+│   └── Order.js           # Order model
+├── controllers/           # Controllers for handling HTTP requests
+│   ├── UserController.js  # Controller for User model
+│   ├── ProductController.js # Controller for Product model
+│   └── OrderController.js # Controller for Order model
+├── routes/                # Express routes for handling HTTP requests
+│   ├── userRoutes.js      # Route for User model
+│   ├── productRoutes.js   # Route for Product model
+│   └── orderRoutes.js     # Route for Order model
+├── services/              # Services for business logic
+│   ├── userService.js     # Service for User model
+│   ├── productService.js  # Service for Product model
+│   └── orderService.js    # Service for Order model
+├── app.js                 # Main application file
+├── package.json           # Package.json file
+└── tsconfig.json          # TypeScript configuration file
+```
+
+#### 🏗️ Folder Structure (Modular Pattern with Mongoose)
+```plaintext
+project/
+│
+├── modules/
+│   ├── user/
+│   │   ├── user.model.js
+│   │   ├── user.controller.js
+│   │   ├── user.routes.js
+│   │   ├── user.service.js
+│   │   └── user.validation.js
+│   │
+│   ├── auth/
+│   │   ├── auth.controller.js
+│   │   ├── auth.routes.js
+│   │   ├── auth.service.js
+│   │   └── auth.middleware.js
+│
+├── config/
+│   ├── db.js
+│   └── env.js
+│
+├── middlewares/
+│   ├── error.middleware.js
+│   ├── validate.middleware.js
+│
+├── utils/
+│   ├── ApiError.js
+│   └── catchAsync.js
+│
+├── app.js
+├── server.js
+└── .env
+```
+
+
+#### ❓ TypeScript Interface in Mongoose
+TypeScript is a superset of JavaScript that adds static typing to the language. It helps catch errors early in the development process by providing type checking and code completion features. TypeScript interfaces can be used in Mongoose to define the structure of documents in a MongoDB collection. This allows you to define the expected shape of documents and provides type safety during development.
+#### Example TypeScript Interface in Mongoose
+```javascript
+export interface IAddress {
+  country: string;
+  city: string;
+  street: string;
+  zip: string;
+} 
+// Embedding the IAddress interface in IUser interface
+
+export interface IUser {
+  _id?: string;
+  fullName: string;
+  email: string;
+  passwordHash: string;
+  role?: 'admin' | 'manager' | 'user';
+  isActive?: boolean;
+  lastLogin?: Date | null;
+  address: IAddress;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface IOrganization {
+  _id?: string;
+  name: string;
+  industry?: 'tech' | 'finance' | 'education' | 'healthcare';
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+// Instance Methods
+export interface UserInstanceMethods {
+  hashPassword(password: string): Promise<string>;
+}
+
+// Static Methods
+export interface UserStaticMethods extends model<IUser>{
+  hashPassword(password: string): Promise<string>;
+}
+```
+
+> **Instance methods** are functions that operate on individual documents. You define them on the schema's `methods` object. They have access to the document via `this`.
+
+> **Static methods** are functions that operate on the model itself, not on individual documents. You define them on the schema's `statics` object. They do not have access to the document instance.
+
+
+> In Mongoose, you can embed one schema inside another using sub-documents.
+
+**✅ Use embedding when:**
+- The embedded data is strongly related to the parent (e.g., a post and its comments).
+- You often need to retrieve the parent and child together.
+- The embedded data is not reused elsewhere.
+
+**❌ Avoid embedding when:**
+
+- The embedded data will grow large (MongoDB document size limit is 16MB).
+- The child data needs to be accessed independently or frequently without the parent.
+- The data is shared or referenced across different parents.
+
+
+
+#### ❓Schema in Mongoose
+A Schema in Mongoose is a blueprint or structure definition for documents within a MongoDB collection. It defines:
+- The fields (keys) a document will have,
+- The data types of each field,
+- Optional configurations like validation rules, default values, indexes, relationships, and more.
+
+This gives structure and consistency to data stored in a schemaless MongoDB database.
+
+#### Example Schema in Mongoose
+
+```javascript
+// models/Organization.js
+const mongoose = require('mongoose');
+
+const organizationSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Organization name is required'],
+    minlength: [3, 'Minimum 3 characters required']
+  },
+  industry: {
+    type: String,
+    enum: ['tech', 'finance', 'education', 'healthcare'],
+    default: 'tech'
+  }
+}, 
+  {  timestamps: true,
+     versionKey: false  // Disable __v field
+}); 
+
+const Organization = mongoose.model('Organization', organizationSchema);
+module.exports = Organization;
+```
+
+Suppose you’re building an enterprise-grade application for managing users in a SaaS platform. You need to define a User schema that includes:
+```javascript
+// models/User.js
+const mongoose = require('mongoose');
+
+const addressSchema = new mongoose.Schema({
+  country: { type: String, required: true, trim: true },
+  city: { type: String, required: true, trim: true },
+  street: { type: String, required: true, trim: true },
+  zip: { type: String, required: true, trim: true }
+}, 
+  { _id: false }
+); // _id: false prevents a separate _id for the sub-document
+
+const userSchema = new mongoose.Schema({
+  fullName: {
+    type: String,
+    required: [true, 'Full name is required'],
+    minlength: [2, 'Name must be at least 2 characters'],
+    trim: true
+  },
+  email: {
+    type: String,
+    required: [true, 'Email is required'],
+    unique: true,
+    lowercase: true,
+    // custom validation
+    validate: {
+    validator: function(value) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+    },
+      message: function(props) {
+        return `Email ${props.value} is not valid`
+    }},
+  },
+
+  // OR use the built-in validator
+  passwordHash: {
+    type: String,
+    required: true
+  },
+  role: {
+    type: String,
+    enum: ['admin', 'manager', 'user'],
+    default: 'user'
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  lastLogin: {
+    type: Date
+  },
+  address: {
+    type: addressSchema,
+    required: true
+  }
+}, {
+  timestamps: true // Automatically adds createdAt and updatedAt fields
+  versionKey: false // Disable __v field
+  // You can also add other options like collection name, toJSON, toObject, etc.
+});
+
+
+/* -------------------------- Built-in Instance Method -------------------------- */
+userSchema.methods.isAdmin = function () {
+  return this.role === 'admin';
+};
+
+/* ----------------------------- Static Method ----------------------------- */
+userSchema.statics.findActiveUsers = function () {
+  return this.find({ isActive: true });
+};
+
+
+// instance method
+userSchema.method("hashPassword", async function(plainPassword: string){
+    const password = await bcrypt.hash(plainPassword, 10);
+    return password;
+});
+
+
+
+// static method
+userSchema.static("hashPassword", async function(plainPassword: string){
+    const password = await bcrypt.hash(plainPassword, 10);
+    return password;
+});
+
+
+// Pre Hooks
+
+// Document Middleware
+userSchema.pre("save", async function(next) {
+    this.password = await bcrypt.hash(this.password, 10)
+    next()
+});
+
+//Query Middleware
+userSchema.pre("find", function(next) {
+    console.log("Inside pre find hook.");
+    next()
+});
+
+
+//Post Hook
+
+//Document Middleware
+userSchema.post('save', function (doc, next) {
+    console.log(`${doc.email} has been saved`);
+    next()
+});
+
+//Query Middleware
+userSchema.post("findOneAndDelete", async function(doc, next) {
+    if(doc) {
+        console.log(doc);
+        await User.deleteMany({ user: doc._id })
+    }
+    next()
+});
+
+// using virtual
+userSchema.virtual("fullName").get(function() {
+    return `${this.firstName} ${this.lastName}`;
+});
+```
+
+> bcrypt is a library for hashing passwords. It is commonly used in Mongoose schemas to securely store user passwords. In the example above, the `hashPassword` method hashes the password before saving it to the database.
+
+> Query middleware allows you to modify the query before it is executed. In the example above, the `pre` hook logs a message before executing a find query.
+
+> Post middleware allows you to perform actions after a query has been executed. In the example above, the `post` hook logs a message after a document has been saved.
+
+> Virtuals are properties that are not stored in the database but can be computed from other fields. In the example above, the `fullName` virtual combines the first and last names into a single property.
+
+> **Note**: The `timestamps` option automatically adds `createdAt` and `updatedAt` fields to the schema, which are useful for tracking when documents were created and last updated.
+
+> **Note**: The `versionKey` option disables the `__v` field, which is used by Mongoose to track document revisions.
+ 
+
+Benefits of Using Mongoose Schema
+- Validation at the application level.
+- Predictable data structure across the app.
+- Middleware support (e.g., hashing passwords before saving).
+- Custom instance & static methods (extend schema behavior).
+- Relationships via ref and populate.
+
+#### ❓Model in Mongoose
+In Mongoose, a model is a constructor function created from a schema. It represents a collection in the MongoDB database and provides an interface to interact with the documents in that collection (e.g., querying, inserting, updating, deleting).
+
+Compile the Schema into a Model
+```javascript
+const User = mongoose.model("User", UserSchema):
+module.exports = User;
+```
+This line tells Mongoose:
+> “Take this `userSchema`, and bind it to a collection named `users` in the database.”
+
+
+#### Zod Validation Before Mongoose
+Zod is a TypeScript-first schema declaration and validation library. It allows you to define schemas for your data structures and validate them before passing them to Mongoose. This can help catch validation errors early in the development process.
+```javascript
+const { z } = require('zod');
+
+const userSchemaZod = z.object({
+  fullName: z.string().min(2),
+  email: z.string().email(),
+  age: z.number().min(18).max(65),
+  role: z.enum(['admin', 'user', 'guest']),
+  organization: z.string().min(1),
+  isActive: z.boolean().optional()
+});
+
+module.exports = { userSchemaZod };
+```
+
+#### Creating a User with Zod + Mongoose
+```javascript
+const User = require('../models/User');
+const Organization = require('../models/Organization');
+const { userSchemaZod } = require('../validation/userValidation');
+
+const createUser = async (req, res) => {
+  try {
+    // Step 1: Validate with Zod
+    const parsedData = userSchemaZod.parse(req.body);
+
+    // Step 2: Check if organization exists
+    const org = await Organization.findById(parsedData.organization);
+    if (!org) return res.status(404).json({ error: 'Organization not found' });
+
+    // Step 3: Create user using Mongoose
+    const user = new User(parsedData);
+    await user.save();
+
+    res.status(201).json(user);
+  } catch (err) {
+    if (err.name === 'ZodError') {
+      return res.status(400).json({ validation: err.errors });
+    }
+    res.status(500).json({ error: err.message });
+  }
+};
+module.exports = { createUser };
+```
+
+#### Population (Referencing Organization)
+```javascript
+const getUserWithOrganization = async (req, res) => {
+  const user = await User.findById(req.params.id).populate('organization');
+  res.json(user);
+};
+```
+> The `populate` method allows you to replace the specified field (in this case, `organization`) with the actual document from the referenced collection, making it easier to work with related data.
+
+
+#### Filtering, Sorting, Skip, Limit
+```javascript
+const getUsers = async (req, res) => {
+  const { role, isActive, sortBy = 'createdAt', order = 'desc', page = 1, limit = 10 } = req.query;
+
+  const filter = {};
+  if (role) filter.role = role;
+  if (isActive !== undefined) filter.isActive = isActive === 'true';
+
+  const users = await User.find(filter)
+    .sort({ [sortBy]: order === 'desc' ? -1 : 1 })
+    .skip((page - 1) * limit)
+    .limit(parseInt(limit));
+
+  res.json(users);
+};
+```
+> filtering allows you to retrieve only the documents that match certain criteria, sorting arranges the results in a specific order, skipping allows you to skip a certain number of documents, and limiting restricts the number of documents returned.
